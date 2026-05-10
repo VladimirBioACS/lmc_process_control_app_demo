@@ -1,0 +1,113 @@
+[
+    {
+        "command": "update_style",
+        "selector": "#plc-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#furnace-coolant-pump-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#vacuum-pump-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#aluminium-coolant-pump-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#actuator-motor-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#aluminium-tank-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#smelting-form-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#smelting-form-heating-furnace-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#aluminium-heating-furnace-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"   
+     }
+]
+
+[
+    {
+        "command": "update_style",
+        "selector": "#plc-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#furnace-coolant-pump-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#vacuum-pump-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#aluminium-coolant-pump-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#actuator-motor-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#aluminium-tank-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#smelting-form-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#smelting-form-heating-furnace-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#aluminium-heating-furnace-symbol-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+     }
+]

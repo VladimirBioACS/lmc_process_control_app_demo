@@ -1,0 +1,153 @@
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+font-family: 'Roboto', sans-serif;
+}
+
+body {
+background-color: #4869ff;
+height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+font-family: Arial, sans-serif;
+}
+
+.top-bar {
+background-color: #3a57e8;
+width: 100%;
+padding: 10px 0;
+position: fixed;
+top: 0;
+display: flex;
+justify-content: left;
+align-items: center;
+box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+display: flex;
+align-items: center;
+gap: 10px;
+color: white;
+}
+
+.header-content .material-icons {
+font-size: 32px;
+}
+
+h1 {
+font-size: 20px;
+font-weight: 500;
+}
+
+.login-container {
+margin-top: 0px; /* Adjust to leave space for the top bar */
+text-align: center;
+width: 400px;
+padding: 25px;
+background-color: #5a7dff;
+border-radius: 10px;
+}
+
+.login-box h2 {
+color: white;
+margin-bottom: 10px;
+}
+
+.login-box p {
+color: #e0e0e0;
+margin-bottom: 20px;
+}
+
+.input-group {
+margin-bottom: 15px;
+text-align: left;
+}
+
+.input-group label {
+color: white;
+font-weight: 500;
+margin-bottom: 5px;
+display: block;
+}
+
+.input-group input {
+width: 100%;
+padding: 10px;
+border-radius: 5px;
+border: none;
+font-size: 16px;
+}
+
+.login-button {
+background-color: #32d158;
+color: white;
+font-size: 18px;
+padding: 10px;
+width: 50%;
+border: none;
+border-radius: 15px;
+cursor: pointer;
+}
+
+.login-button:hover {
+background-color: #28b44d;
+}
+
+/* затемнення фону */
+.modal-overlay{
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.5);
+    display:none;
+    justify-content:center;
+    align-items:center;
+}
+
+/* контейнер модального вікна */
+.modal{
+    width:400px;
+    background:white;
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 5px 20px rgba(0,0,0,0.3);
+}
+
+/* header */
+.modal-header{
+    background:#c62828;
+    color:white;
+    padding:12px 20px;
+    font-weight:bold;
+}
+
+/* body */
+.modal-body{
+    padding:25px;
+    text-align:center;
+}
+
+/* кнопка */
+.modal-footer{
+    padding:15px;
+    text-align:center;
+}
+
+.modal-footer button{
+    padding:8px 25px;
+    border:none;
+    background:#c62828;
+    color:white;
+    border-radius:4px;
+    cursor:pointer;
+}
+
+.modal-footer button:hover{
+    background:#a61e1e;
+}

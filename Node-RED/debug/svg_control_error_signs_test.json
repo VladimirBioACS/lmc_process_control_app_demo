@@ -1,0 +1,185 @@
+
+
+[
+{
+    "command": "update_style",
+    "selector": "#plc-conn-module-block-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#alloy-in-chamber-module-block-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#vacuum-chamber-module-block-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#actuator-speed-module-block-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#furnace-coolant-pump-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#furnace-coolant-pump-valve-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#form-heating-furnace-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#vacuum-chamber-preasure-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#smelting-form-temp-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#vacuum-pump-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#vacuum-pump-valve-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#aluminium-cooling-pump-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#aluminium-cooling-pump-valve-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#aluminium-tank-temperature-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+},
+{
+    "command": "update_style",
+    "selector": "#aluminium-heating-furnace-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "visible"
+}
+]
+
+[{
+    "command": "update_style",
+    "selector": "#plc-conn-module-block-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#alloy-in-chamber-module-block-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#vacuum-chamber-module-block-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#actuator-speed-module-block-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#furnace-coolant-pump-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#furnace-coolant-pump-valve-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#form-heating-furnace-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#vacuum-chamber-preasure-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#smelting-form-temp-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#vacuum-pump-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#vacuum-pump-valve-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#aluminium-cooling-pump-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#aluminium-cooling-pump-valve-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#aluminium-tank-temperature-err-sign-id",
+    "attributeName": 	"visibility",
+    "attributeValue": "hidden"
+},
+{
+    "command": "update_style",
+    "selector": "#aluminium-heating-furnace-err-sign-id",
+    "attributeName": "visibility",
+    "attributeValue": "hidden"
+}]

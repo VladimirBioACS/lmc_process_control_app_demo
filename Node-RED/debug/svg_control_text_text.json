@@ -1,0 +1,128 @@
+
+
+[
+    {
+        "command": "update_text",
+        "selector": "#power-system-status-text-id",
+        "textContent": "OK"
+    },
+    {
+        "command": "update_style",
+        "selector": "#power-system-status-text-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"
+    },
+    {
+        "command": "update_text",
+        "selector": "#power-system-power-consumption-text-id",
+        "textContent": "1500 W"
+    },
+    {
+        "command": "update_style",
+        "selector": "#power-system-power-consumption-text-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"
+     },
+    {
+        "command": "update_text",
+        "selector": "#power-system-voltage-text-id",
+        "textContent": "230 V"
+     },
+    {
+        "command": "update_style",
+        "selector": "#power-system-voltage-text-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"
+     },
+    {
+        "command": "update_text",
+        "selector": "#power-system-current-text-id",
+        "textContent": "6.5 A"
+     },
+    {
+        "command": "update_style",
+        "selector": "#power-system-current-text-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"
+     },
+    {
+        "command": "update_text",
+        "selector": "#plc-status-text-id",
+        "textContent": "OK"
+    },
+    {
+        "command": "update_text",
+        "selector": "#plc-protocol-text-id",
+        "textContent": "Modbus TCP"
+    },
+    {
+        "command": "update_text",
+        "selector": "#plc-interface-text-id",
+        "textContent": "Ethernet"
+     },
+    {
+        "command": "update_text",
+        "selector": "#furnace-coolant-pump-status-text-id",
+        "textContent": "ON"
+    },
+    {
+        "command": "update_text",
+        "selector": "#furnace-coolant-pump-valve-status-text-id",
+        "textContent": "OPEN"
+    },
+    {
+        "command": "update_text",
+        "selector": "#vacuum-pump-status-text-id",
+        "textContent": "OFF"
+    },
+    {
+        "command": "update_text",
+        "selector": "#vacuum-pump-valve-status-text-id",
+        "textContent": "CLOSED"
+    },
+    {
+        "command": "update_text",
+        "selector": "#aluminium-coolant-pump-status-text-id",
+        "textContent": "ON"
+    },
+    {
+        "command": "update_text",
+        "selector": "#aluminium-coolant-pump-valve-status-text-id",
+        "textContent": "OPEN"
+    },
+    {
+        "command": "update_text",
+        "selector": "#smelting-form-heating-furnace-temp-text-id",
+        "textContent": "1200 °C"
+    },
+    {
+        "command": "update_text",
+        "selector": "#smelting-form-temp-text-id",
+        "textContent": "1180 °C"
+     },
+    {
+        "command": "update_text",
+        "selector": "#vacuum-in-chamber-text-id",
+        "textContent": "-0.95 bar"
+     },
+    {
+        "command": "update_text",
+        "selector": "#alloy-status-in-chamber-text-id",
+        "textContent": "Aluminium Alloy 6061"
+     },
+    {
+        "command": "update_text",
+        "selector": "#actuator-speed-value-text-id",
+        "textContent": "1500 RPM"
+     },
+    {
+        "command": "update_text",
+        "selector": "#aluminium-temp-value-text-id",
+        "textContent": "700 °C"
+     },
+    {
+        "command": "update_text",
+        "selector": "#aluminium-heating-furnace-temp-text-id",
+        "textContent": "700 °C"
+    }
+]

@@ -1,0 +1,105 @@
+[
+{
+    "command": "set_attribute",
+    "selector": "#furnace-coolant-pipe-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(0, 110, 175); animation: 500ms linear 0s infinite normal none running ge-flow-animation; stroke-dashoffset: 16; stroke-dasharray: 8;"
+},
+{
+    "command": "set_attribute",
+    "selector": "#furnace-coolant-pipe-anim-1-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(0, 110, 175); animation: 500ms linear 0s infinite reverse none running ge-flow-animation; stroke-dashoffset: 16; stroke-dasharray: 8;"
+},
+{
+    "command": "set_attribute",
+    "selector": "#vacuum-pipe-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(0, 110, 175); animation: 500ms linear 0s infinite normal none running ge-flow-animation; stroke-dashoffset: 16; stroke-dasharray: 8;"
+},
+{
+    "command": "set_attribute",
+    "selector": "#vacuum-pipe-anim-1-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(0, 110, 175); animation: 500ms linear 0s infinite normal none running ge-flow-animation; stroke-dashoffset: 16; stroke-dasharray: 8;"
+},
+{
+    "command": "set_attribute",
+    "selector": "#aluminium-coolant-pipe-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(0, 110, 175); animation: 500ms linear 0s infinite normal none running ge-flow-animation; stroke-dashoffset: 16; stroke-dasharray: 8;"
+},
+{
+    "command": "set_attribute",
+    "selector": "#aluminium-coolant-pipe-anim-1-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(0, 110, 175); animation: 500ms linear 0s infinite normal none running ge-flow-animation; stroke-dashoffset: 16; stroke-dasharray: 8;"
+},
+{
+    "command": "set_attribute",
+    "selector": "#plc-conn-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(81, 255, 0); animation: 500ms linear 0s infinite normal none running ge-flow-animation; stroke-dashoffset: 16; stroke-dasharray: 8;"
+},
+{
+    "command": "set_attribute",
+    "selector": "#power-conn-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(255, 255, 0); animation: 500ms linear 0s infinite normal none running ge-flow-animation; stroke-dashoffset: 16; stroke-dasharray: 8;"
+}
+]
+
+
+
+
+
+[
+{
+    "command": "set_attribute",
+    "selector": "#furnace-coolant-pipe-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(128, 128, 128);"
+},
+{
+    "command": "set_attribute",
+    "selector": "#furnace-coolant-pipe-anim-1-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(128, 128, 128);"
+},
+{
+    "command": "set_attribute",
+    "selector": "#vacuum-pipe-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(128, 128, 128);"
+},
+{
+    "command": "set_attribute",
+    "selector": "#vacuum-pipe-anim-1-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(128, 128, 128);"
+},
+{
+    "command": "set_attribute",
+    "selector": "#aluminium-coolant-pipe-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(128, 128, 128);"
+},
+{
+    "command": "set_attribute",
+    "selector": "#aluminium-coolant-pipe-anim-1-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(128, 128, 128);"
+},
+{
+    "command": "set_attribute",
+    "selector": "#plc-conn-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(128, 128, 128);"
+},
+{
+    "command": "set_attribute",
+    "selector": "#power-conn-anim-id",
+    "attributeName": "style",
+    "attributeValue": "stroke: rgb(128, 128, 128);"
+}
+]

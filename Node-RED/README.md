@@ -1,0 +1,1 @@
+This folder contains Node-RED flow files for the LMC process control application, including the main flow and subflows for PLC communication and UI updates.

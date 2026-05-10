@@ -1,0 +1,1 @@
+This folder contains core modules for the LMC process control application, including the PLC state machine and main process control logic.

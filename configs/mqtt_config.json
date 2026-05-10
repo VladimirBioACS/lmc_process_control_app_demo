@@ -1,0 +1,8 @@
+{
+    "mqtt_broker": "localhost",
+    "mqtt_port": 1883,
+    "mqtt_username": "lmc_user",
+    "mqtt_password": "root1234",
+    "mqtt_qos": 1,
+    "mqtt_keepalive": 60
+}

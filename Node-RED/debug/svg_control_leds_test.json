@@ -1,0 +1,30 @@
+
+[
+    {
+        "command": "update_style",
+        "selector": "#power-system-module-block-status-led-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+    },
+    {
+        "command": "update_style",
+        "selector": "#plc-conn-module-block-status-led-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 255, 0)"   
+     }
+]
+
+[
+    {
+        "command": "update_style",
+        "selector": "#power-system-module-block-status-led-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"
+    },
+    {
+        "command": "update_style",
+        "selector": "#plc-conn-module-block-status-led-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 0, 0)"
+     }
+]

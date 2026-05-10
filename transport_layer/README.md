@@ -1,0 +1,1 @@
+This folder contains transport layer modules for the LMC process control application, including MQTT communication and message handling logic.

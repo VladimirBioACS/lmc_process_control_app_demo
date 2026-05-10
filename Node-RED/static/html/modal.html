@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Modal</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<!-- Модальне вікно -->
+<div class="modal-overlay" id="errorModal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+            System Error
+        </div>
+
+        <div class="modal-body">
+            <h3 id="errorMessage">
+                Unknown error
+            </h3>
+        </div>
+
+        <div class="modal-footer">
+            <button onclick="closeModal()">OK</button>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="../js/modal.js"></script>
+
+</body>
+</html>

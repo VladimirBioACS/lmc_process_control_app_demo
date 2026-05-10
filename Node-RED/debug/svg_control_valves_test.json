@@ -1,0 +1,42 @@
+
+[
+    {
+        "command": "update_style",
+        "selector": "#furnace-cooling-pump-valve-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 255, 255)"
+    },
+    {
+        "command": "update_style",
+        "selector": "#vacuum-pump-valve-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 255, 255)"
+    },
+    {
+        "command": "update_style",
+        "selector": "#aluminium-cooling-pump-valve-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(255, 255, 255)"
+    }
+]
+
+[
+    {
+        "command": "update_style",
+        "selector": "#furnace-cooling-pump-valve-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 0, 0)"
+    },
+    {
+        "command": "update_style",
+        "selector": "#vacuum-pump-valve-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 0, 0)"
+    },
+    {
+        "command": "update_style",
+        "selector": "#aluminium-cooling-pump-valve-id",
+        "attributeName": "fill",
+        "attributeValue": "rgb(0, 0, 0)"
+    }
+]

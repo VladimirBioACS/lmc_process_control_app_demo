@@ -1,0 +1,1 @@
+This folder contains app configuration files, including constants and settings for the LMC process control application.

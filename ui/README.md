@@ -1,0 +1,1 @@
+This folder contains UI tasks and components for the LMC process control application, including the main UI logic and MQTT message handling for UI updates.

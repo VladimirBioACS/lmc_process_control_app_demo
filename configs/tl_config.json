@@ -1,0 +1,9 @@
+{
+    "modbus_tcp": {
+        "host": "127.0.0.1",
+        "port": 5020,
+        "slave_id": 1,
+        "timeout_seconds": 1.0,
+        "poll_interval_seconds": 0.5
+    }
+}

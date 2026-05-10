@@ -1,0 +1,1 @@
+# Node-RED health check module for LMC process control application.

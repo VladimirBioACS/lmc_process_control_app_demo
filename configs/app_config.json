@@ -1,0 +1,5 @@
+{
+    "db_path": "data/app.db",
+    "log_level": "DEBUG",
+    "log_file": "logs/app.log"
+}
