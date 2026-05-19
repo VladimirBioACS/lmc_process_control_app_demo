@@ -192,7 +192,7 @@ def resume_ui_threads() -> None:
     set_ui_runtime_active(True)
 
 
-def calculate_gradient(thermal_couples_data: dict[str, int]) -> float:
+def calculate_gradient(thermal_couples_data: dict[str, int]) -> float | None:
     """
     Calculates the temperature gradient based on the thermal couple data.
 
@@ -211,8 +211,21 @@ def calculate_gradient(thermal_couples_data: dict[str, int]) -> float:
             tl_window_mm=TL_WINDOW_MM,
         )
 
-        temperatures = [thermal_couples_data[f"thermal_couple_{index}"] for index in range(1, 11)]
-        lmc_data = calc.calculate_lmc(THERMAL_COUPLE_POSITIONS_MM, temperatures)
+        active_points = [
+            (
+                THERMAL_COUPLE_POSITIONS_MM[index - 1],
+                float(thermal_couples_data[f"thermal_couple_{index}"]),
+            )
+            for index in range(1, len(THERMAL_COUPLE_POSITIONS_MM) + 1)
+            if f"thermal_couple_{index}" in thermal_couples_data
+            and float(thermal_couples_data[f"thermal_couple_{index}"]) > 0.0
+        ]
+
+        if len(active_points) < 2:
+            return None
+
+        positions, temperatures = zip(*active_points)
+        lmc_data = calc.calculate_lmc(list(positions), list(temperatures))
 
         return lmc_data
 
@@ -220,6 +233,20 @@ def calculate_gradient(thermal_couples_data: dict[str, int]) -> float:
         logger.warning("Unable to calculate gradient: {}", exc)
 
         return None
+
+
+def should_measure_gradient(plc_payload: dict) -> bool:
+    """
+    Start gradient measurement only while actuator is immersed in coolant.
+
+    This excludes the furnace preparation stage where alloy is not yet in the mold.
+    """
+
+    position = float(plc_payload.get("position", 0.0))
+    speed = float(plc_payload.get("speed", 0.0))
+
+    # Immersion stage: actuator has started moving down and process is active.
+    return position > 0.0 and speed > 0.0
 
 
 def publish_plc_payload_to_ui(payload: dict, lmc_data: dict | None = None) -> None:
@@ -232,7 +259,6 @@ def publish_plc_payload_to_ui(payload: dict, lmc_data: dict | None = None) -> No
         lmc_data (dict, optional): The calculated LMC data to be included
                                    in the UI payload. Defaults to None.
     """
-
 
     furnace_temperature_data = {
         "furnace_heater_temperature": payload["furnace_heater_temperature"],
@@ -326,12 +352,13 @@ def get_data_from_plc(plc_controller: PlcCommandController, poll_interval_second
 
             continue
 
-        lmc_data = calculate_gradient(plc_payload)
+        lmc_data = calculate_gradient(plc_payload) if should_measure_gradient(plc_payload) else None
 
         publish_plc_payload_to_ui(plc_payload, lmc_data)
 
         plc_controller.evaluate_running_process(plc_payload,
-                                                gradient=lmc_data["G_K_per_cm"] if lmc_data else None)
+                                                gradient=lmc_data["G_K_per_cm"]
+                                                if lmc_data else None)
 
         sleep(poll_interval_seconds)
 

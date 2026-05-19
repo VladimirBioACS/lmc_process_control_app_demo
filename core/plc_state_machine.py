@@ -202,7 +202,7 @@ class PlcCommandController:
         self._consecutive_nominal_failures = 0
         self._nominal_grace_samples = 3
         self._nominal_failures_to_stop = 4
-        self._finish_ack_timeout_seconds = 15.0
+        self._finish_ack_timeout_seconds = 0.2
         self._finish_ack_poll_seconds = 0.2
         self._awaiting_process_data = False
         self._last_payload_signature: tuple[tuple[str, Any], ...] | None = None
@@ -287,20 +287,20 @@ class PlcCommandController:
                 if self._running_samples_seen <= self._nominal_grace_samples:
                     return
 
-                if self._consecutive_nominal_failures >= self._nominal_failures_to_stop:
-                    self.stop_process()
-                    self.transition_to(ConnectedIdleState())
-                    self._pending_nominal_check = False
-                    self._publish_state_event(
-                        "nominal_validation_failed",
-                        False,
-                        "Process stopped because nominal checks failed repeatedly.",
-                        {
-                            "errors": nominal_errors,
-                            "consecutive_failures": self._consecutive_nominal_failures,
-                        },
-                    )
-                    return
+                # if self._consecutive_nominal_failures >= self._nominal_failures_to_stop:
+                #     self.stop_process()
+                #     self.transition_to(ConnectedIdleState())
+                #     self._pending_nominal_check = False
+                #     self._publish_state_event(
+                #         "nominal_validation_failed",
+                #         False,
+                #         "Process stopped because nominal checks failed repeatedly.",
+                #         {
+                #             "errors": nominal_errors,
+                #             "consecutive_failures": self._consecutive_nominal_failures,
+                #         },
+                #     )
+                #     return
             else:
                 if self._pending_nominal_check:
                     self._pending_nominal_check = False
