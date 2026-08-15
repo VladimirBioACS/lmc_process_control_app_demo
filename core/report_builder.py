@@ -20,6 +20,7 @@ DEFAULT_TEMPLATE_PATH = (
     Path(__file__).resolve().parent / "report_templates" / "uvnk_8p_report_template.xlsx"
 )
 
+REPORT_OUTPUT_DIR = Path(__file__).resolve().parent / "generated"
 
 @dataclass(slots=True)
 class ReportStubData:
@@ -308,7 +309,7 @@ def build_report(
     fill_report_workbook(workbook, data)
 
     if output_path is None:
-        output_dir = template.parent / "generated"
+        output_dir = REPORT_OUTPUT_DIR
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / f"uvnk_8p_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     else:
