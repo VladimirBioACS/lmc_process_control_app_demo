@@ -3,3 +3,5 @@ __pycache__
 logs
 data/app.db
 lmc_venv/
+core/generated/
+core/report_builder_test_app.py
