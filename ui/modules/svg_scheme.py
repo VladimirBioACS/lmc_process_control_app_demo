@@ -10,10 +10,12 @@ except ImportError as e:
 
     sys.exit(1)
 
+
 class SvgSchemeAlloyinChamberStatusTexts(Enum):
     """Enumeration for different status texts of the alloying chamber in the SVG scheme."""
     PRESENT = "Сплав присутній у камері"
     ABSCENT = "Сплав відсутній у камері"
+
 
 class SvgSchemePumpStatusTexts(Enum):
     """Enumeration for different status texts used in the SVG scheme."""
@@ -27,6 +29,7 @@ class SvgSchemaPowerConnectionStatusTexts(Enum):
     ON = "Вкл"
     OFF = "Викл"
     FAULT = "Аварія"
+
 
 class SvgValveStatesColor(Enum):
     """Enumeration for different states of valves in the SVG scheme."""

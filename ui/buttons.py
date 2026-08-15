@@ -4,19 +4,18 @@ import sys
 try:
     from loguru import logger
 
-    from core.plc_state_machine import (PlcCommandController,
-                                            BUTTON_TOPIC_CONNECT,
-                                            BUTTON_TOPIC_DISCONNECT,
-                                            BUTTON_TOPIC_START_PROCESS,
-                                            BUTTON_TOPIC_EMERGENCY_STOP)
+    from core.plc_state_machine import PlcCommandController
+    from core.system_params import (BUTTON_TOPIC_CONNECT,
+                                    BUTTON_TOPIC_DISCONNECT,
+                                    BUTTON_TOPIC_START_PROCESS,
+                                    BUTTON_TOPIC_EMERGENCY_STOP,
+                                    BUTTON_RESPONSE_TOPIC_PREFIX)
 
     from transport_layer.protocol.mqtt.client import (publish_message, register_recv_message_callback)
 except ImportError as e:
     print(f"Error importing modules: {e}")
 
     sys.exit(1)
-
-BUTTON_RESPONSE_TOPIC_PREFIX = "buttons/response"
 
 
 def decode_mqtt_payload(message_payload: bytes) -> dict:

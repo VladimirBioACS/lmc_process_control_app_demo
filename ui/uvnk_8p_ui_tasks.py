@@ -3,6 +3,7 @@ import sys
 import queue
 import threading
 
+from core.system_params import NominalRanges
 from ui.modules.svg_scheme import SvgSchemeAlloyinChamberStatusTexts
 
 # Importing necessary modules and handling import errors
@@ -79,6 +80,84 @@ def wait_for_ui_runtime() -> bool:
             return True
 
     return False
+
+
+def _resolve_pump_state(status, on_secondary_flow, invalid_error_flag=False):
+    """Resolve pump visual configuration for a given system state."""
+
+    match status:
+        case SvgSystemStates.ON.value:
+            return {
+                "status_text": SvgSchemePumpStatusTexts.OPEN.value,
+                "color": SvgSvhemeColors.NORMAL.value,
+                "primary_flow": SvgFlowAnimations.PUMP_FLOW_ON.value,
+                "secondary_flow": on_secondary_flow,
+                "valve_open": True,
+                "error_set_flag": False,
+                "is_unknown": False,
+            }
+        case SvgSystemStates.OFF.value:
+            return {
+                "status_text": SvgSchemePumpStatusTexts.CLOSED.value,
+                "color": SvgSvhemeColors.OFF.value,
+                "primary_flow": SvgFlowAnimations.PUMP_FLOW_OFF.value,
+                "secondary_flow": SvgFlowAnimations.PUMP_FLOW_OFF.value,
+                "valve_open": False,
+                "error_set_flag": False,
+                "is_unknown": False,
+            }
+        case SvgSystemStates.FAULT.value:
+            return {
+                "status_text": SvgSchemePumpStatusTexts.FAULT.value,
+                "color": SvgSvhemeColors.CRITICAL.value,
+                "primary_flow": SvgFlowAnimations.PUMP_FLOW_OFF.value,
+                "secondary_flow": SvgFlowAnimations.PUMP_FLOW_OFF.value,
+                "valve_open": False,
+                "error_set_flag": True,
+                "is_unknown": False,
+            }
+        case _:
+            return {
+                "status_text": SvgSchemePumpStatusTexts.CLOSED.value,
+                "color": SvgSvhemeColors.OFF.value,
+                "primary_flow": SvgFlowAnimations.PUMP_FLOW_OFF.value,
+                "secondary_flow": SvgFlowAnimations.PUMP_FLOW_OFF.value,
+                "valve_open": False,
+                "error_set_flag": invalid_error_flag,
+                "is_unknown": True,
+            }
+
+
+def _apply_pump_state(
+    pump,
+    state,
+    status_text_id,
+    valve_status_text_id,
+    flow_anim_primary_id,
+    flow_anim_secondary_id,
+    valve_id,
+    symbol_id,
+    error_sign_id,
+    error_message,
+):
+    """Apply resolved pump visual configuration to the SVG scheme."""
+
+    pump.set_indicator_value(status_text_id,
+                             state["status_text"],
+                             state["color"])
+    pump.set_flow_animation(flow_anim_primary_id,
+                            attribute_value=state["primary_flow"])
+    pump.set_flow_animation(flow_anim_secondary_id,
+                            attribute_value=state["secondary_flow"])
+    pump.set_valve_state(valve_id, state["valve_open"])
+    pump.set_symbol_color(symbol_id,
+                          state["color"])
+    pump.set_indicator_value(valve_status_text_id,
+                             state["status_text"],
+                             state["color"])
+    pump.set_error(error_message,
+                   error_sign_id,
+                   error_set_flag=state["error_set_flag"])
 
 
 def ui_svg_power_system_block_thread(client):
@@ -175,79 +254,22 @@ def ui_svg_vacuum_pump_thread(client):
         try:
             data = vacuum_pump_queue.get(timeout=0.5)
 
-            match data["vacuum_pump_status"]:
-                case SvgSystemStates.ON.value:
-                    vacuum_pump.set_indicator_value("vacuum-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.OPEN.value,
-                                                    SvgSvhemeColors.NORMAL.value)
-                    vacuum_pump.set_flow_animation("vacuum-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_ON.value)
-                    vacuum_pump.set_flow_animation("vacuum-pipe-anim-1-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_ON.value)
-                    vacuum_pump.set_valve_state("vacuum-pump-valve-id", True)
-                    vacuum_pump.set_symbol_color("vacuum-pump-symbol-id",
-                                                SvgSvhemeColors.NORMAL.value)
-                    vacuum_pump.set_indicator_value("vacuum-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.OPEN.value,
-                                                     SvgSvhemeColors.NORMAL.value)
-                    vacuum_pump.set_error(f"pump status: {data['vacuum_pump_status']}",
-                                            "vacuum-pump-err-sign-id",
-                                            error_set_flag=False)
+            state = _resolve_pump_state(data["vacuum_pump_status"],
+                                        on_secondary_flow=SvgFlowAnimations.PUMP_FLOW_ON.value,
+                                        invalid_error_flag=False)
 
-                case SvgSystemStates.OFF.value:
-                    vacuum_pump.set_indicator_value("vacuum-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.CLOSED.value,
-                                                    SvgSvhemeColors.OFF.value)
-                    vacuum_pump.set_flow_animation("vacuum-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    vacuum_pump.set_flow_animation("vacuum-pipe-anim-1-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    vacuum_pump.set_valve_state("vacuum-pump-valve-id", False)
-                    vacuum_pump.set_symbol_color("vacuum-pump-symbol-id",
-                                                SvgSvhemeColors.OFF.value)
-                    vacuum_pump.set_indicator_value("vacuum-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.CLOSED.value,
-                                                     SvgSvhemeColors.OFF.value)
-                    vacuum_pump.set_error(f"pump status: {data['vacuum_pump_status']}",
-                                            "vacuum-pump-err-sign-id",
-                                            error_set_flag=False)
-
-                case SvgSystemStates.FAULT.value:
-                    vacuum_pump.set_indicator_value("vacuum-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.FAULT.value,
-                                                    SvgSvhemeColors.CRITICAL.value)
-                    vacuum_pump.set_flow_animation("vacuum-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    vacuum_pump.set_flow_animation("vacuum-pipe-anim-1-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    vacuum_pump.set_valve_state("vacuum-pump-valve-id", False)
-                    vacuum_pump.set_symbol_color("vacuum-pump-symbol-id",
-                                                SvgSvhemeColors.CRITICAL.value)
-                    vacuum_pump.set_indicator_value("vacuum-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.FAULT.value,
-                                                     SvgSvhemeColors.CRITICAL.value)
-                    vacuum_pump.set_error(f"pump status: {data['vacuum_pump_status']}",
-                                            "vacuum-pump-err-sign-id",
-                                            error_set_flag=True)
-
-                # default case where the pump is closed
-                case _:
-                    vacuum_pump.set_indicator_value("vacuum-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.CLOSED.value,
-                                                    SvgSvhemeColors.OFF.value)
-                    vacuum_pump.set_flow_animation("vacuum-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    vacuum_pump.set_flow_animation("vacuum-pipe-anim-1-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    vacuum_pump.set_valve_state("vacuum-pump-valve-id", False)
-                    vacuum_pump.set_symbol_color("vacuum-pump-symbol-id",
-                                                SvgSvhemeColors.OFF.value)
-                    vacuum_pump.set_indicator_value("vacuum-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.CLOSED.value,
-                                                     SvgSvhemeColors.OFF.value)
-                    vacuum_pump.set_error(f"pump status: {data['vacuum_pump_status']}",
-                                            "vacuum-pump-err-sign-id",
-                                            error_set_flag=False)
+            _apply_pump_state(
+                pump=vacuum_pump,
+                state=state,
+                status_text_id="vacuum-pump-status-text-id",
+                valve_status_text_id="vacuum-pump-valve-status-text-id",
+                flow_anim_primary_id="vacuum-pipe-anim-id",
+                flow_anim_secondary_id="vacuum-pipe-anim-1-id",
+                valve_id="vacuum-pump-valve-id",
+                symbol_id="vacuum-pump-symbol-id",
+                error_sign_id="vacuum-pump-err-sign-id",
+                error_message=f"pump status: {data['vacuum_pump_status']}",
+            )
 
             vacuum_pump_queue.task_done()
 
@@ -276,79 +298,26 @@ def ui_svg_coolant_pump_thread(client):
         try:
             data = coolant_pump_queue.get(timeout=0.5)
 
-            match data["coolant_pump_status"]:
-                case SvgSystemStates.ON.value:
-                    coolant_pump.set_indicator_value("furnace-coolant-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.OPEN.value,
-                                                    SvgSvhemeColors.NORMAL.value)
-                    coolant_pump.set_flow_animation("furnace-coolant-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_ON.value)
-                    coolant_pump.set_flow_animation("furnace-coolant-pipe-anim-1-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_REVERSE.value)
-                    coolant_pump.set_valve_state("furnace-cooling-pump-valve-id", True)
-                    coolant_pump.set_symbol_color("furnace-coolant-pump-symbol-id",
-                                                SvgSvhemeColors.NORMAL.value)
-                    coolant_pump.set_indicator_value("furnace-coolant-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.OPEN.value,
-                                                     SvgSvhemeColors.NORMAL.value)
-                    coolant_pump.set_error(f"pump status: {data['coolant_pump_status']}",
-                                            "furnace-coolant-pump-err-sign-id",
-                                            error_set_flag=False)
+            state = _resolve_pump_state(data["coolant_pump_status"],
+                                        on_secondary_flow=SvgFlowAnimations.PUMP_FLOW_REVERSE.value,
+                                        invalid_error_flag=True)
 
-                case SvgSystemStates.OFF.value:
-                    coolant_pump.set_indicator_value("furnace-coolant-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.CLOSED.value,
-                                                    SvgSvhemeColors.OFF.value)
-                    coolant_pump.set_flow_animation("furnace-coolant-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    coolant_pump.set_flow_animation("furnace-coolant-pipe-anim-1-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    coolant_pump.set_valve_state("furnace-cooling-pump-valve-id", False)
-                    coolant_pump.set_symbol_color("furnace-coolant-pump-symbol-id",
-                                                SvgSvhemeColors.OFF.value)
-                    coolant_pump.set_indicator_value("furnace-coolant-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.CLOSED.value,
-                                                     SvgSvhemeColors.OFF.value)
-                    coolant_pump.set_error(f"pump status: {data['coolant_pump_status']}",
-                                            "furnace-coolant-pump-err-sign-id",
-                                            error_set_flag=False)
+            error_message = f"pump status: {data['coolant_pump_status']}"
+            if data["coolant_pump_status"] == SvgSystemStates.FAULT.value or state["is_unknown"]:
+                error_message = f"Invalid coolant pump status: {data['coolant_pump_status']}"
 
-                case SvgSystemStates.FAULT.value:
-                    coolant_pump.set_indicator_value("furnace-coolant-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.FAULT.value,
-                                                    SvgSvhemeColors.CRITICAL.value)
-                    coolant_pump.set_flow_animation("furnace-coolant-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    coolant_pump.set_flow_animation("furnace-coolant-pipe-anim-1-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    coolant_pump.set_valve_state("furnace-cooling-pump-valve-id", False)
-                    coolant_pump.set_symbol_color("furnace-coolant-pump-symbol-id",
-                                                    SvgSvhemeColors.CRITICAL.value)
-                    coolant_pump.set_indicator_value("furnace-coolant-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.FAULT.value,
-                                                     SvgSvhemeColors.CRITICAL.value)
-                    coolant_pump.set_error(f"Invalid coolant pump status: {data['coolant_pump_status']}",
-                                            "furnace-coolant-pump-err-sign-id",
-                                            error_set_flag=True)
-
-                # default case where the pump is closed
-                case _:
-                    coolant_pump.set_indicator_value("furnace-coolant-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.CLOSED.value,
-                                                    SvgSvhemeColors.OFF.value)
-                    coolant_pump.set_flow_animation("furnace-coolant-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    coolant_pump.set_flow_animation("furnace-coolant-pipe-anim-1-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    coolant_pump.set_valve_state("furnace-cooling-pump-valve-id", False)
-                    coolant_pump.set_symbol_color("furnace-coolant-pump-symbol-id",
-                                                SvgSvhemeColors.OFF.value)
-                    coolant_pump.set_indicator_value("furnace-coolant-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.CLOSED.value,
-                                                     SvgSvhemeColors.OFF.value)
-                    coolant_pump.set_error(f"Invalid coolant pump status: {data['coolant_pump_status']}",
-                                            "furnace-coolant-pump-err-sign-id",
-                                            error_set_flag=True)
+            _apply_pump_state(
+                pump=coolant_pump,
+                state=state,
+                status_text_id="furnace-coolant-pump-status-text-id",
+                valve_status_text_id="furnace-coolant-pump-valve-status-text-id",
+                flow_anim_primary_id="furnace-coolant-pipe-anim-id",
+                flow_anim_secondary_id="furnace-coolant-pipe-anim-1-id",
+                valve_id="furnace-cooling-pump-valve-id",
+                symbol_id="furnace-coolant-pump-symbol-id",
+                error_sign_id="furnace-coolant-pump-err-sign-id",
+                error_message=error_message,
+            )
 
             coolant_pump_queue.task_done()
 
@@ -379,7 +348,7 @@ def ui_svg_main_smelting_form_thread(client):
             logger.debug(f"Updating main smelting form SVG with data: {data}")
 
             # Check if temperature is within normal range and set error if not
-            if data["smelting_form_temperature"] < 1500 or data["smelting_form_temperature"] > 1550:
+            if data["smelting_form_temperature"] < 1300 or data["smelting_form_temperature"] > 1700:
                 smelting_form.set_error(f"Smelting form temperature out of range: {data['smelting_form_temperature']} °C",
                                         "smelting-form-temp-err-sign-id",
                                         error_set_flag=True)
@@ -430,7 +399,7 @@ def ui_svg_form_heating_furnace_thread(client):
             data = form_heating_furnace_temp_queue.get(timeout=0.5)
 
             # Check if temperature is within normal range and set error if not
-            if data["form_heating_furnace_temperature"] < 1500 or data["form_heating_furnace_temperature"] > 1550:
+            if data["form_heating_furnace_temperature"] < 1300 or data["form_heating_furnace_temperature"] > 1700:
                 heating_furnace.set_error(f"Form heating furnace temperature out of range: {data['form_heating_furnace_temperature']} °C",
                                         "form-heating-furnace-err-sign-id",
                                         error_set_flag=True)
@@ -482,7 +451,7 @@ def ui_svg_furnace_vacuum_thread(client):
             data = vacuum_value_queue.get(timeout=0.5)
 
             # Check if vacuum value is within normal range and set error if not
-            if data["vacuum"] < 5 or data["vacuum"] > 8:
+            if data["vacuum"] < 5 or data["vacuum"] > 10:
                 furnace_vacuum.set_error(f"Furnace vacuum out of range: {data['vacuum']} Pa",
                                         "vacuum-chamber-preasure-err-sign-id",
                                         error_set_flag=True)
@@ -763,7 +732,7 @@ def ui_svg_aluminium_temperature_thread(client):
             data = aluminium_temperature_queue.get(timeout=0.5)
 
             # Check if temperature is within normal range and set error if not
-            if data["temperature"] < 790 or data["temperature"] > 850:
+            if data["temperature"] < 700 or data["temperature"] > 900:
                 aluminium_temperature.set_error(f"Aluminium temperature out of range: {data['temperature']} °C",
                                         "aluminium-tank-temperature-err-sign-id",
                                         error_set_flag=True)
@@ -819,83 +788,22 @@ def ui_svg_aluminium_coolant_pump_thread(client):
         try:
             data = aluminium_coolant_pump_queue.get(timeout=0.5)
 
-            match data["aluminium_coolant_pump_status"]:
-                case SvgSystemStates.ON.value:
-                    aluminium_coolant_pump.set_indicator_value("aluminium-coolant-pump-status-text-id",
-                                                               SvgSchemePumpStatusTexts.OPEN.value,
-                                                               SvgSvhemeColors.NORMAL.value)
+            state = _resolve_pump_state(data["aluminium_coolant_pump_status"],
+                                        on_secondary_flow=SvgFlowAnimations.PUMP_FLOW_ON.value,
+                                        invalid_error_flag=True)
 
-                    aluminium_coolant_pump.set_flow_animation("aluminium-coolant-pipe-anim-id",
-                                                              attribute_value=SvgFlowAnimations.PUMP_FLOW_ON.value)
-                    aluminium_coolant_pump.set_flow_animation("aluminium-coolant-pipe-anim-1-id",
-                                                              attribute_value=SvgFlowAnimations.PUMP_FLOW_ON.value)
-
-                    aluminium_coolant_pump.set_valve_state("aluminium-cooling-pump-valve-id", True)
-                    aluminium_coolant_pump.set_indicator_value("aluminium-coolant-pump-valve-status-text-id",
-                                                               SvgSchemePumpStatusTexts.OPEN.value,
-                                                               SvgSvhemeColors.NORMAL.value)
-
-                    aluminium_coolant_pump.set_symbol_color("aluminium-coolant-pump-symbol-id",
-                                                            SvgSvhemeColors.NORMAL.value)
-
-                    aluminium_coolant_pump.set_error(f"pump status: {data['aluminium_coolant_pump_status']}",
-                                                     "aluminium-cooling-pump-err-sign-id",
-                                                     error_set_flag=False)
-
-                case SvgSystemStates.OFF.value:
-                    aluminium_coolant_pump.set_indicator_value("aluminium-coolant-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.CLOSED.value,
-                                                    SvgSvhemeColors.OFF.value)
-                    aluminium_coolant_pump.set_flow_animation("aluminium-coolant-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    aluminium_coolant_pump.set_flow_animation("aluminium-coolant-pipe-anim-1-id",
-                                                              attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    aluminium_coolant_pump.set_valve_state("aluminium-cooling-pump-valve-id", False)
-                    aluminium_coolant_pump.set_symbol_color("aluminium-coolant-pump-symbol-id",
-                                                SvgSvhemeColors.OFF.value)
-                    aluminium_coolant_pump.set_indicator_value("aluminium-coolant-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.CLOSED.value,
-                                                     SvgSvhemeColors.OFF.value)
-                    aluminium_coolant_pump.set_error(f"pump status: {data['aluminium_coolant_pump_status']}",
-                                            "aluminium-cooling-pump-err-sign-id",
-                                            error_set_flag=False)
-
-                case SvgSystemStates.FAULT.value:
-                    aluminium_coolant_pump.set_indicator_value("aluminium-coolant-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.FAULT.value,
-                                                    SvgSvhemeColors.CRITICAL.value)
-                    aluminium_coolant_pump.set_flow_animation("aluminium-coolant-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    aluminium_coolant_pump.set_flow_animation("aluminium-coolant-pipe-anim-1-id",
-                                                              attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    aluminium_coolant_pump.set_valve_state("aluminium-cooling-pump-valve-id", False)
-                    aluminium_coolant_pump.set_symbol_color("aluminium-coolant-pump-symbol-id",
-                                                SvgSvhemeColors.CRITICAL.value)
-                    aluminium_coolant_pump.set_indicator_value("aluminium-coolant-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.FAULT.value,
-                                                     SvgSvhemeColors.CRITICAL.value)
-                    aluminium_coolant_pump.set_error(f"pump status: {data['aluminium_coolant_pump_status']}",
-                                            "aluminium-cooling-pump-err-sign-id",
-                                            error_set_flag=True)
-
-                # default case where the pump is closed
-                case _:
-                    aluminium_coolant_pump.set_indicator_value("aluminium-coolant-pump-status-text-id",
-                                                    SvgSchemePumpStatusTexts.CLOSED.value,
-                                                    SvgSvhemeColors.OFF.value)
-                    aluminium_coolant_pump.set_flow_animation("aluminium-coolant-pipe-anim-id",
-                                                attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    aluminium_coolant_pump.set_flow_animation("aluminium-coolant-pipe-anim-1-id",
-                                                              attribute_value=SvgFlowAnimations.PUMP_FLOW_OFF.value)
-                    aluminium_coolant_pump.set_valve_state("aluminium-cooling-pump-valve-id", False)
-                    aluminium_coolant_pump.set_symbol_color("aluminium-coolant-pump-symbol-id",
-                                                SvgSvhemeColors.OFF.value)
-                    aluminium_coolant_pump.set_indicator_value("aluminium-coolant-pump-valve-status-text-id",
-                                                     SvgSchemePumpStatusTexts.CLOSED.value,
-                                                     SvgSvhemeColors.OFF.value)
-                    aluminium_coolant_pump.set_error(f"pump status: {data['aluminium_coolant_pump_status']}",
-                                            "aluminium-cooling-pump-err-sign-id",
-                                            error_set_flag=True)
+            _apply_pump_state(
+                pump=aluminium_coolant_pump,
+                state=state,
+                status_text_id="aluminium-coolant-pump-status-text-id",
+                valve_status_text_id="aluminium-coolant-pump-valve-status-text-id",
+                flow_anim_primary_id="aluminium-coolant-pipe-anim-id",
+                flow_anim_secondary_id="aluminium-coolant-pipe-anim-1-id",
+                valve_id="aluminium-cooling-pump-valve-id",
+                symbol_id="aluminium-coolant-pump-symbol-id",
+                error_sign_id="aluminium-cooling-pump-err-sign-id",
+                error_message=f"pump status: {data['aluminium_coolant_pump_status']}",
+            )
 
             aluminium_coolant_pump_queue.task_done()
         except queue.Empty:

@@ -1,14 +1,30 @@
 from __future__ import annotations
 
 import threading
-from dataclasses import dataclass
 from enum import Enum
-from time import sleep
+from time import monotonic, sleep
 from typing import Any, Callable
 
 from loguru import logger
 
-from core.lmc_calculator import LmcCalculator
+from core.system_params import (
+    BUTTON_EVENT_TOPIC,
+    BUTTON_STATE_TOPIC,
+    LMC_PROCESS_STATUS_TOPIC,
+    MODBUS_DEFAULT_HOST,
+    MODBUS_DEFAULT_PORT,
+    MODBUS_DEFAULT_SLAVE_ID,
+    MODBUS_DEFAULT_TIMEOUT_SECONDS,
+    PLC_DEFAULT_START_SPEED_MM_PER_SEC,
+    PLC_FINISH_ACK_POLL_SECONDS,
+    PLC_FINISH_ACK_TIMEOUT_SECONDS,
+    PLC_GRADIENT_TOLERANCE_K_PER_CM,
+    PLC_MAX_SPEED_MM_PER_SEC,
+    PLC_MIN_SPEED_MM_PER_SEC,
+    PLC_NOMINAL_FAILURES_TO_STOP,
+    PLC_NOMINAL_GRACE_SAMPLES,
+    NominalRanges,
+)
 from transport_layer.protocol.modbus_rtu.client import ModbusClient, ModbusClientErrorCode
 from transport_layer.protocol.modbus_rtu.server import (
     FINISH_STATUS_FAILED,
@@ -18,39 +34,11 @@ from transport_layer.protocol.modbus_rtu.server import (
 from transport_layer.protocol.mqtt.client import publish_message
 
 
-BUTTON_TOPIC_CONNECT = "buttons/connect_to_plc"
-BUTTON_TOPIC_START_PROCESS = "buttons/start_process"
-BUTTON_TOPIC_EMERGENCY_STOP = "buttons/emergency_stop"
-BUTTON_TOPIC_DISCONNECT = "buttons/disconnect_from_plc"
-BUTTON_STATE_TOPIC = "buttons/state"
-BUTTON_EVENT_TOPIC = "buttons/events"
-LMC_PROCESS_STATUS_TOPIC = "lmc_process_status/"
-
-
 class AppStateName(str, Enum):
     DISCONNECTED = "disconnected"
     CONNECTED_IDLE = "connected_idle"
     PROCESS_RUNNING = "process_running"
     EMERGENCY_STOPPED = "emergency_stopped"
-
-
-@dataclass(slots=True)
-class NominalRanges:
-    """
-    Nominal ranges for key telemetry fields used in process evaluation for UVNK-8P furnace.
-    These can be adjusted based on expected operating conditions of the LMC process.
-    """
-
-    furnace_heater_temperature_min: float = 1400.0
-    furnace_heater_temperature_max: float = 1600.0
-    aluminium_temperature_min: float = 760.0
-    aluminium_temperature_max: float = 840.0
-    smelting_form_temperature_min: float = 1350.0
-    smelting_form_temperature_max: float = 1600.0
-    aluminium_heater_temperature_min: float = 760.0
-    aluminium_heater_temperature_max: float = 840.0
-    vacuum_min: float = 0.0
-    vacuum_max: float = 10.0
 
 
 class PlcAppState:
@@ -195,18 +183,21 @@ class PlcCommandController:
 
         self._nominal_ranges = NominalRanges()
         self._target_gradient = target_gradient
-        self._gradient_tolerance = 0.5
+        self._gradient_tolerance = PLC_GRADIENT_TOLERANCE_K_PER_CM
         self._withdraw_mm_per_min = 20.0
         self._pending_nominal_check = False
         self._running_samples_seen = 0
         self._consecutive_nominal_failures = 0
-        self._nominal_grace_samples = 3
-        self._nominal_failures_to_stop = 4
-        self._finish_ack_timeout_seconds = 0.2
-        self._finish_ack_poll_seconds = 0.2
+        self._nominal_grace_samples = PLC_NOMINAL_GRACE_SAMPLES
+        self._nominal_failures_to_stop = PLC_NOMINAL_FAILURES_TO_STOP
+        self._finish_ack_timeout_seconds = PLC_FINISH_ACK_TIMEOUT_SECONDS
+        self._finish_ack_poll_seconds = PLC_FINISH_ACK_POLL_SECONDS
         self._awaiting_process_data = False
         self._last_payload_signature: tuple[tuple[str, Any], ...] | None = None
         self._resume_baseline_signature: tuple[tuple[str, Any], ...] | None = None
+        self._finish_in_progress = False
+        self._finish_deadline_monotonic: float | None = None
+        self._finish_requested_gradient: float | None = None
 
     @property
     def state_name(self) -> AppStateName:
@@ -222,7 +213,9 @@ class PlcCommandController:
 
     def handle_start_process_command(self, command_payload: dict[str, Any] | None = None) -> tuple[bool, str]:
         payload = command_payload or {}
-        speed_mm_per_sec = self._normalize_speed(payload.get("speed_mm_per_sec", 10.0))
+        speed_mm_per_sec = self._normalize_speed(
+            payload.get("speed_mm_per_sec", PLC_DEFAULT_START_SPEED_MM_PER_SEC)
+        )
 
         with self._lock:
             ok, message = self._state.start_process(self, speed_mm_per_sec)
@@ -278,6 +271,10 @@ class PlcCommandController:
             if self._state.name != AppStateName.PROCESS_RUNNING:
                 return
 
+            if self._finish_in_progress:
+                self._poll_finish_acknowledgement()
+                return
+
             self._running_samples_seen += 1
             nominal_errors = self._check_nominal_ranges(plc_payload)
             if nominal_errors:
@@ -316,17 +313,7 @@ class PlcCommandController:
                 return
 
             if abs(gradient - self._target_gradient) <= self._gradient_tolerance:
-                if self.finish_the_process(gradient):
-                    self.transition_to(ConnectedIdleState())
-                    self._publish_state_event(
-                        "process_finished",
-                        True,
-                        "Target gradient reached. Finish command sent and PLC returned to idle.",
-                        {
-                            "gradient_k_per_cm": round(gradient, 2),
-                            "target_gradient_k_per_cm": self._target_gradient,
-                        },
-                    )
+                self._start_finish_sequence(gradient)
 
 
     def shutdown(self) -> None:
@@ -351,10 +338,10 @@ class PlcCommandController:
             return True
 
         client = ModbusClient(
-            ip_address=self._modbus_config.get("host", "127.0.0.1"),
-            port=self._modbus_config.get("port", 5020),
-            slave_id=self._modbus_config.get("slave_id", 1),
-            timeout=self._modbus_config.get("timeout_seconds", 1.0),
+            ip_address=self._modbus_config.get("host", MODBUS_DEFAULT_HOST),
+            port=self._modbus_config.get("port", MODBUS_DEFAULT_PORT),
+            slave_id=self._modbus_config.get("slave_id", MODBUS_DEFAULT_SLAVE_ID),
+            timeout=self._modbus_config.get("timeout_seconds", MODBUS_DEFAULT_TIMEOUT_SECONDS),
         )
 
         logger.info("Connecting to PLC at {}:{}...", client.ip_address, client.port)
@@ -370,6 +357,7 @@ class PlcCommandController:
             self._pending_nominal_check = False
             self._awaiting_process_data = False
             self._resume_baseline_signature = None
+            self._reset_finish_tracking()
             return True
 
         try:
@@ -384,6 +372,7 @@ class PlcCommandController:
         self._consecutive_nominal_failures = 0
         self._awaiting_process_data = False
         self._resume_baseline_signature = None
+        self._reset_finish_tracking()
         return True
 
 
@@ -401,6 +390,7 @@ class PlcCommandController:
         self._consecutive_nominal_failures = 0
         self._awaiting_process_data = True
         self._resume_baseline_signature = self._last_payload_signature
+        self._reset_finish_tracking()
         self._plc_client.reset_finish_status()
         return True
 
@@ -415,6 +405,7 @@ class PlcCommandController:
         self._consecutive_nominal_failures = 0
         self._awaiting_process_data = False
         self._resume_baseline_signature = None
+        self._reset_finish_tracking()
 
         success = result == ModbusClientErrorCode.SUCCESS
         if success:
@@ -445,10 +436,15 @@ class PlcCommandController:
             return False
 
         elapsed = 0.0
+        last_finish_status: int | None = None
+        read_error: ModbusClientErrorCode | None = None
         while elapsed <= self._finish_ack_timeout_seconds:
             finish_status = self._plc_client.read_finish_status()
             if isinstance(finish_status, ModbusClientErrorCode):
+                read_error = finish_status
                 break
+
+            last_finish_status = finish_status
 
             if finish_status == FINISH_STATUS_SUCCESS:
                 self._pending_nominal_check = False
@@ -480,17 +476,128 @@ class PlcCommandController:
             sleep(self._finish_ack_poll_seconds)
             elapsed += self._finish_ack_poll_seconds
 
+        if read_error is not None:
+            failure_message = (
+                f"Failed to read finish acknowledgement from simulator: {read_error.name}."
+            )
+        elif last_finish_status == FINISH_STATUS_FAILED:
+            failure_message = "Simulator reported finish sequence failure."
+        else:
+            failure_message = (
+                "Timeout while waiting for simulator finish acknowledgement "
+                f"({self._finish_ack_timeout_seconds:.1f}s). "
+                f"Last status={last_finish_status if last_finish_status is not None else 'none'}."
+            )
+
         publish_message(
             self._mqtt_client,
             LMC_PROCESS_STATUS_TOPIC,
             {
                 "status": "FAILED",
                 "command": "finish_the_process",
-                "message": "Timeout or failure while waiting for simulator finish acknowledgement.",
+                "message": failure_message,
             },
         )
 
         return False
+
+
+    def _start_finish_sequence(self, gradient_k_per_cm: float) -> bool:
+        if self._plc_client is None:
+            return False
+
+        result = self._plc_client.write_finish_process()
+        if result != ModbusClientErrorCode.SUCCESS:
+            publish_message(
+                self._mqtt_client,
+                LMC_PROCESS_STATUS_TOPIC,
+                {
+                    "status": "FAILED",
+                    "command": "finish_the_process",
+                    "message": f"PLC rejected finish command: {result.name}",
+                },
+            )
+            return False
+
+        self._finish_in_progress = True
+        self._finish_deadline_monotonic = monotonic() + self._finish_ack_timeout_seconds
+        self._finish_requested_gradient = float(gradient_k_per_cm)
+        return True
+
+
+    def _poll_finish_acknowledgement(self) -> None:
+        if not self._finish_in_progress or self._plc_client is None:
+            return
+
+        finish_status = self._plc_client.read_finish_status()
+        if isinstance(finish_status, ModbusClientErrorCode):
+            self._publish_finish_failure(
+                f"Failed to read finish acknowledgement from simulator: {finish_status.name}."
+            )
+            self._reset_finish_tracking()
+            return
+
+        if finish_status == FINISH_STATUS_SUCCESS:
+            gradient = self._finish_requested_gradient
+            self._pending_nominal_check = False
+            self._running_samples_seen = 0
+            self._consecutive_nominal_failures = 0
+            self._awaiting_process_data = False
+            self._resume_baseline_signature = None
+            self._reset_finish_tracking()
+            self._notify_process_stopped()
+            self.transition_to(ConnectedIdleState())
+            publish_message(
+                self._mqtt_client,
+                LMC_PROCESS_STATUS_TOPIC,
+                {
+                    "status": "SUCCESS",
+                    "command": "finish_the_process",
+                    "gradient_k_per_cm": round(gradient, 2) if gradient is not None else None,
+                    "target_gradient_k_per_cm": self._target_gradient,
+                },
+            )
+            self._publish_state_event(
+                "process_finished",
+                True,
+                "Target gradient reached. Finish command sent and PLC returned to idle.",
+                {
+                    "gradient_k_per_cm": round(gradient, 2) if gradient is not None else None,
+                    "target_gradient_k_per_cm": self._target_gradient,
+                },
+            )
+            return
+
+        if finish_status == FINISH_STATUS_FAILED:
+            self._publish_finish_failure("Simulator reported finish sequence failure.")
+            self._reset_finish_tracking()
+            return
+
+        deadline = self._finish_deadline_monotonic
+        if deadline is not None and monotonic() >= deadline:
+            self._publish_finish_failure(
+                "Timeout while waiting for simulator finish acknowledgement "
+                f"({self._finish_ack_timeout_seconds:.1f}s). Last status={finish_status}."
+            )
+            self._reset_finish_tracking()
+
+
+    def _publish_finish_failure(self, message: str) -> None:
+        publish_message(
+            self._mqtt_client,
+            LMC_PROCESS_STATUS_TOPIC,
+            {
+                "status": "FAILED",
+                "command": "finish_the_process",
+                "message": message,
+            },
+        )
+
+
+    def _reset_finish_tracking(self) -> None:
+        self._finish_in_progress = False
+        self._finish_deadline_monotonic = None
+        self._finish_requested_gradient = None
 
 
     @staticmethod
@@ -569,12 +676,12 @@ class PlcCommandController:
         try:
             speed = float(raw_speed)
         except (TypeError, ValueError):
-            speed = 10.0
+            speed = PLC_DEFAULT_START_SPEED_MM_PER_SEC
 
-        if speed < 5.0:
-            return 5.0
-        if speed > 30.0:
-            return 30.0
+        if speed < PLC_MIN_SPEED_MM_PER_SEC:
+            return PLC_MIN_SPEED_MM_PER_SEC
+        if speed > PLC_MAX_SPEED_MM_PER_SEC:
+            return PLC_MAX_SPEED_MM_PER_SEC
 
         return speed
 

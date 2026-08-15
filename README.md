@@ -50,7 +50,7 @@ Use this order to run the PLC simulator and the LMC app with Modbus TCP.
 2. Activate virtual environment:
 	- `source lmc_venv/bin/activate`
 3. Start PLC simulator first (Terminal A):
-	- `python test/simulations/plc_simulator.py`
+	- `python plc_simulator/simulations/plc_simulator.py`
 4. Start LMC process control app second (Terminal B):
 	- `python lmc_process_control.py`
 

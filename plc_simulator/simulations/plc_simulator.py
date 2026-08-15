@@ -43,8 +43,8 @@ MAX_THERMAL_COUPLES = 10
 DEFAULT_THERMAL_COUPLES = 5
 COOLING_START_POSITION = 35
 COOLING_POSITION_STEP = 5
-COOLING_LOWER_TEMP_LIMIT = 900
-WITHDRAW_MM_PER_MIN = 20.0
+COOLING_LOWER_TEMP_LIMIT = 850
+WITHDRAW_MM_PER_MIN = 10.0
 FRONT_ANGLE_DEG = 30.0
 TL_TEMPERATURE = 1560.0
 TL_WINDOW_MM = 10.0
@@ -354,10 +354,17 @@ async def finish_the_process(
         datastore.update_telemetry(payload)
         await asyncio.sleep(RETURN_INTERVAL_SECONDS)
 
-    payload["position"] = 0
-    payload["speed"] = 0
-    state.current_payload = payload
+    # Publish a full reset snapshot before reporting finish success so the
+    # controller emits process_finished only after initial state is available.
+    reset_payload = initial_payload()
+    reset_payload["position"] = 0
+    reset_payload["speed"] = 0
+    state.current_payload = reset_payload
     state.active = False
+    state.elapsed_seconds = 0.0
+    state.current_position_step = 0
+
+    datastore.update_telemetry(reset_payload)
 
     datastore.set_process_started(False)
     datastore.set_finish_status(FINISH_STATUS_SUCCESS)

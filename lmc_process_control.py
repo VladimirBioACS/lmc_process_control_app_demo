@@ -13,6 +13,22 @@ try:
 
     from core.lmc_calculator import LmcCalculator
     from core.plc_state_machine import (PlcCommandController)
+    from core.system_params import (
+        APP_CONFIG_PATH,
+        MQTT_CONFIG_PATH,
+        TL_CONFIG_PATH,
+        DEFAULT_LOG_LEVEL,
+        DEFAULT_LOG_FILE,
+        THERMAL_COUPLE_POSITIONS_MM,
+        DESIRED_LMC_GRADIENT_K_PER_CM,
+        TL_TEMPERATURE,
+        WITHDRAW_MM_PER_MIN,
+        FRONT_ANGLE_DEG,
+        TL_WINDOW_MM,
+        THREAD_POOL_MAX_WORKERS,
+        DEFAULT_POLL_INTERVAL_SECONDS,
+        MAIN_LOOP_SLEEP_SECONDS,
+    )
 
     from ui.queues import (gauge_furnace,
                            gauge_thermal_couple,
@@ -66,13 +82,6 @@ except ImportError as e:
     sys.exit(1)
 
 
-APP_CONFIG_PATH = "configs/app_config.json"
-MQTT_CONFIG_PATH = "configs/mqtt_config.json"
-TL_CONFIG_PATH = "configs/tl_config.json"
-DEFAULT_LOG_LEVEL = "INFO"
-DEFAULT_LOG_FILE = "logs/app.log"
-
-BUTTON_RESPONSE_TOPIC_PREFIX = "buttons/response"
 UI_DATA_QUEUES = [
     gauge_furnace,
     gauge_thermal_couple,
@@ -91,16 +100,6 @@ UI_DATA_QUEUES = [
     alloy_in_chamber_queue,
 ]
 
-
-#LMC params
-THERMAL_COUPLE_POSITIONS_MM = [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0]
-
-DESIRED_LMC_GRADIENT_K_PER_CM = 20.0
-
-TL_TEMPERATURE = 1560.0
-WITHDRAW_MM_PER_MIN = 20.0
-FRONT_ANGLE_DEG = 30.0
-TL_WINDOW_MM = 10.0
 
 def init_logger(log_level: str = DEFAULT_LOG_LEVEL, log_file: str = DEFAULT_LOG_FILE) -> None:
     """
@@ -372,7 +371,8 @@ def schedule_app_tasks(client, plc_controller: PlcCommandController,
         client (mqtt.Client): The MQTT client instance to pass to the scheduled tasks.
     """
 
-    with ThreadPoolExecutor(max_workers=16, thread_name_prefix="lmc_monitoring") as executor:
+    with ThreadPoolExecutor(max_workers=THREAD_POOL_MAX_WORKERS,
+                            thread_name_prefix="lmc_monitoring") as executor:
         # Schedule UI update threads and the PLC data fetching thread
         executor.submit(ui_gauges_furnace_temp_thread, client)
         executor.submit(ui_gauges_thermal_couples_thread, client)
@@ -438,11 +438,12 @@ def main() -> None:
 
         schedule_app_tasks(client,
                            plc_controller,
-                           modbus_config.get("poll_interval_seconds", 0.5))
+                           modbus_config.get("poll_interval_seconds",
+                                             DEFAULT_POLL_INTERVAL_SECONDS))
 
         # Keep the main thread alive to allow background threads to run
         while not stop_event.is_set():
-            sleep(0.1)
+            sleep(MAIN_LOOP_SLEEP_SECONDS)
 
     except (KeyboardInterrupt, SystemExit):
         logger.info("Keyboard interrupt received. Shutting down...")
